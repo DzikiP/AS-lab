@@ -2,59 +2,68 @@
 require_once dirname(__FILE__).'/../config.php';
 require_once _ROOT_PATH.'/lib/smarty/libs/Smarty.class.php';
 
-// Pobranie parametrów
+// Pobranie parametrów z formularza
 function getParams(&$form){
     $form['kredyt'] = isset($_REQUEST['kredyt']) ? $_REQUEST['kredyt'] : null;
-    $form['lata'] = isset($_REQUEST['y']) ? $_REQUEST['y'] : null;
-    $form['oprocentowanie'] = isset($_REQUEST['op']) ? $_REQUEST['op'] : null;
+    $form['lata'] = isset($_REQUEST['lata']) ? $_REQUEST['lata'] : null;
+    $form['oprocentowanie'] = isset($_REQUEST['oprocentowanie']) ? $_REQUEST['oprocentowanie'] : null;
 }
 
-// Walidacja
+// Walidacja parametrów
 function validate(&$form, &$infos, &$msgs){
+    
+    // sprawdzenie, czy pola istnieją
     if (!isset($form['kredyt'], $form['lata'], $form['oprocentowanie'])) {
-        $msgs[] = 'Błędne wywołanie aplikacji. Brak jednego z parametrów.';
+        $msgs[] = 'Błędne wywołanie aplikacji - brak danych.';
         return false;
     }
 
-    if ($form['kredyt'] === "") $msgs[] = 'Nie podano wielkości kredytu';
-    if ($form['lata'] === "") $msgs[] = 'Nie podano liczby lat';
+    // sprawdzenie pustych wartości
+    if ($form['kredyt'] === "") $msgs[] = 'Nie podano kwoty kredytu.';
+    if ($form['lata'] === "") $msgs[] = 'Nie podano liczby lat.';
 
+    // walidacja typów danych
     if (empty($msgs)) {
-        if (!is_numeric($form['kredyt'])) $msgs[] = 'Wielkość kredytu nie jest liczbą';
-        if (!is_numeric($form['lata'])) $msgs[] = 'Liczba lat nie jest liczbą';
+        if (!is_numeric($form['kredyt'])) $msgs[] = 'Kwota kredytu musi być liczbą.';
+        if (!is_numeric($form['lata'])) $msgs[] = 'Liczba lat musi być liczbą.';
     }
 
     return empty($msgs);
 }
 
-// Obliczenia
-function process(&$form, &$infos, &$msgs, &$result){
+// Obliczenie raty kredytu (annuitet)
+function process(&$form, &$infos, &$msgs, &$rata){
+    
     $infos[] = 'Parametry poprawne. Wykonuję obliczenia.';
 
-    $form['kredyt'] = floatval($form['kredyt']);
-    $form['lata'] = intval($form['lata']);
+    // konwersje typów
+    $kwota = floatval($form['kredyt']);
+    $lata = intval($form['lata']);
+    $miesiecy = $lata * 12;
 
+    // konwersja oprocentowania
     switch ($form['oprocentowanie']) {
-        case '5%': $r = 0.05/12; break;
+        case '5%':  $r = 0.05/12; break;
         case '10%': $r = 0.10/12; break;
         case '15%': $r = 0.15/12; break;
         case '20%': $r = 0.20/12; break;
-        default: $msgs[] = "Nieprawidłowe oprocentowanie"; return;
+        default:
+            $msgs[] = "Nieprawidłowe oprocentowanie.";
+            return;
     }
 
-    $result = $form['kredyt'] * ($r * pow(1+$r,$form['lata'])) / (pow(1+$r,$form['lata'])-1);
+    // wzór na ratę
+    $rata = $kwota * ($r * pow(1 + $r, $miesiecy)) / (pow(1 + $r, $miesiecy) - 1);
 }
 
-// Inicjacja zmiennych
 $form = [];
 $infos = [];
 $messages = [];
-$result = null;
-$hide_intro = false;
+$rata = null;
 
 getParams($form);
-if (validate($form,$infos,$messages)){
-    process($form,$infos,$messages,$result);
+if (validate($form, $infos, $messages)) {
+    process($form, $infos, $messages, $rata);
 }
 
 // Smarty
@@ -64,11 +73,10 @@ $smarty->assign('root_path', _ROOT_PATH);
 $smarty->assign('page_title', 'Kalkulator kredytowy');
 $smarty->assign('page_description', 'Kalkulator kredytowy oparty na Smarty');
 $smarty->assign('page_header', 'Kalkulator kredytowy');
-$smarty->assign('hide_intro', $hide_intro);
 
 $smarty->assign('form', $form);
 $smarty->assign('messages', $messages);
 $smarty->assign('infos', $infos);
-$smarty->assign('result', $result);
+$smarty->assign('rata', $rata);
 
 $smarty->display(_ROOT_PATH.'/app/calc.html');

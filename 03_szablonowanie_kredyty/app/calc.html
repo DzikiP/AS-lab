@@ -1,37 +1,32 @@
 {extends file="../templates/main.html"}
 
-{block name=footer}przykładowa tresć stopki wpisana do szablonu głównego z szablonu kalkulatora{/block}
+{block name=footer}
+przykładowa treść stopki wpisana do szablonu głównego z szablonu kalkulatora
+{/block}
 
 {block name=content}
-
-<h2 class="content-head is-center">Prosty kalkulator</h2>
-
 <div class="pure-g">
 	<div class="l-box-lrg pure-u-1 pure-u-med-2-5">
-		<form class="pure-form pure-form-stacked" action="{$app_url}/app/calc.php" method="post">
+		<form action="{$app_url}/app/calc.php" method="post" class="pure-form pure-form-stacked">
 			<fieldset>
 
-				<label for="x">Pierwsza liczba</label>
-				<input id="x" type="text" placeholder="wartość x" name="x" value="{$form['x']}">
+				<label for="id_kredyt">Jak duży kredyt chcesz wziąć?</label>
+				<input id="id_kredyt" type="text" name="kredyt" value="{$form['kredyt']|default:''}" />
 
-				<label for="op">Operacja</label>
-				<select id="op" name="op">
-
-					{if isset($form['op_name'])}
-					<option value="{$form['op']}">ponownie: {$form['op_name']}</option>
-					<option value="" disabled="true">---</option>
-					{/if}
-					<option value="plus">(+) dodaj</option>
-					<option value="minus">(-) odejmij </option>
-					<option value="times">(*) pomnóż</option>
-					<option value="div">(/) podziel</option>
+				<label for="id_op">Oprocentowanie:</label>
+				<select name="oprocentowanie">
+					<option value="5%" {if $form['oprocentowanie']=='5%' }selected{/if}>5%</option>
+					<option value="10%" {if $form['oprocentowanie']=='10%' }selected{/if}>10%</option>
+					<option value="15%" {if $form['oprocentowanie']=='15%' }selected{/if}>15%</option>
+					<option value="20%" {if $form['oprocentowanie']=='20%' }selected{/if}>20%</option>
 				</select>
 
-				<label for="y">Druga liczba</label>
-				<input id="y" type="text" placeholder="wartość y" name="y" value="{$form['y']}">
+				<label for="id_lata">Ile lat chcesz spłacać kredyt:</label>
+				<input id="id_lata" type="text" name="lata" value="{$form['lata']|default:''}" />
 
-				<button type="submit" class="pure-button">Oblicz</button>
 			</fieldset>
+
+			<input type="submit" value="Oblicz" class="pure-button pure-button-primary" />
 		</form>
 	</div>
 
@@ -65,10 +60,10 @@
 		{/if}
 		{/if}
 
-		{if isset($result)}
-		<h4>Wynik</h4>
+		{if isset($rata)}
+		<h4>Twoja rata będzie wynosić: </h4>
 		<p class="res">
-			{$result}
+			{$rata|number_format:2:'.':' '}
 		</p>
 		{/if}
 
