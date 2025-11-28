@@ -1,0 +1,74 @@
+{extends file="main.tpl"}
+{* przy zdefiniowanych folderach nie trzeba już podawać pełnej ścieżki *}
+{block name=footer}przykładowa tresć stopki wpisana do szablonu głównego z szablonu kalkulatora{/block}
+
+{block name=content}
+
+	<h2 class="content-head is-center">Kalkulator kredytowy</h2>
+
+	<div class="pure-g">
+		<div class="l-box-lrg pure-u-1 pure-u-med-2-5">
+			<form class="pure-form pure-form-stacked" action="{$conf->app_url}/app/calc.php" method="post">
+				<fieldset>
+
+					<label for="kredyt">Jak duży chcesz kredyt?</label>
+					<input id="kredyt" type="text" placeholder="kredyt" name="kredyt" value="{$form->kredyt}">
+
+					<label for="opr">Oprocentowanie</label>
+					<select id="opr" name="opr">
+
+						{if isset($res->opr_name)}
+							<option value="{$form->opr}">ponownie: {$res->opr_name}</option>
+							<option value="" disabled="true">---</option>
+						{/if}
+						<option value="5%">5%</option>
+						<option value="10%">10% </option>
+						<option value="15%">15%</option>
+						<option value="20%">20%</option>
+					</select>
+
+					<label for="lata">Na ile lat chcesz kredyt?</label>
+					<input id="lata" type="text" placeholder="lata" name="lata" value="{$form->lata}">
+
+					<button type="submit" class="pure-button">Oblicz</button>
+				</fieldset>
+			</form>
+		</div>
+
+		<div class="l-box-lrg pure-u-1 pure-u-med-3-5">
+
+			{* wyświeltenie listy błędów, jeśli istnieją *}
+			{if $msgs->isError()}
+				<h4>Wystąpiły błędy: </h4>
+				<ol class="err">
+					{foreach $msgs->getErrors() as $err}
+						{strip}
+							<li>{$err}</li>
+						{/strip}
+					{/foreach}
+				</ol>
+			{/if}
+
+			{* wyświeltenie listy informacji, jeśli istnieją *}
+			{if $msgs->isInfo()}
+				<h4>Informacje: </h4>
+				<ol class="inf">
+					{foreach $msgs->getInfos() as $inf}
+						{strip}
+							<li>{$inf}</li>
+						{/strip}
+					{/foreach}
+				</ol>
+			{/if}
+
+			{if isset($res->result)}
+				<h4>Twoja rata wynosi:</h4>
+				<p class="res">
+					{$res->result}
+				</p>
+			{/if}
+
+		</div>
+	</div>
+
+{/block}
