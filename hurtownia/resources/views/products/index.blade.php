@@ -35,7 +35,7 @@
                                     <form action="{{ route('products.destroy', $product->id) }}" method="POST">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" onclick="return confirm('na pewno chcesz ussunąć?')" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                                        <button type="submit" onclick="return confirm('na pewno chcesz usunąć?')" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
                                             Usuń produkt
                                         </button>
                                     </form>
