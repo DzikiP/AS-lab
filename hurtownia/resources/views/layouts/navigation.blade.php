@@ -17,11 +17,18 @@
                             {{ __('Dashboard') }}
                         </x-nav-link>
 
-                        @if(Auth::user()->role === 'worker')
+                        @if(Auth::user()->hasRole('worker'))
                             <x-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')">
                                 {{ __('Produkty') }}
                             </x-nav-link>
                         @endif
+                        
+                        @if(Auth::user()->hasRole('admin'))
+                            <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
+                                {{ __('Uzytkownicy') }}
+                            </x-nav-link>
+                        @endif
+                        
                     </div>
                 @endauth
             </div>

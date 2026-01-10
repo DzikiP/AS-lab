@@ -9,11 +9,15 @@ class RoleMiddleware
 {
     public function handle($request, Closure $next, ...$roles)
     {
-        if (!Auth::check()) {
+        $user = Auth::user();
+
+        if (!$user) {
             return redirect()->route('login');
         }
 
-        if (!in_array(Auth::user()->role, $roles)) {
+        $userRole = $user->role?->name;
+
+        if (!in_array($userRole, $roles)) {
             abort(403);
         }
 

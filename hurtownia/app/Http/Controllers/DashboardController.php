@@ -8,12 +8,15 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $role = Auth::user()->role;
+        $user = Auth::user();
 
-        return match ($role) {
-            'admin'  => view('dashboard.admin'),
+        $roleName = $user->role->name;
+
+        return match ($roleName) {
+            'admin' => view('dashboard.admin'),
             'worker' => view('dashboard.worker'),
             'client' => view('dashboard.client'),
+            default => abort(403),
         };
     }
 }
