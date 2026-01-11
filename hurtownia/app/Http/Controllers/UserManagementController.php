@@ -70,6 +70,8 @@ class UserManagementController extends Controller
             'username' => $request->username,
             'password' => Hash::make($request->password),
             'role_id' => $request->role_id,
+            'created_by' => $request->user()->name,
+            'updated_by' => $request->user()->name,
         ]);
 
         return redirect()->route('users.index')->with('success', 'Użytkownik został dodany!');

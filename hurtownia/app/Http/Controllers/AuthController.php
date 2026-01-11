@@ -3,13 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Role;
 use App\Http\Requests\LoginRequest;
+use App\Http\Requests\RegisterRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
+    /* =======================
+     * LOGIN
+     * ======================= */
     public function showLogin()
     {
         return view('auth.login');
@@ -18,40 +23,53 @@ class AuthController extends Controller
     public function login(LoginRequest $request)
     {
         $credentials = $request->validated();
+
+        // Authuje po username i password
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            return redirect()->intended('/dashboard');
+            return redirect()->intended(route('dashboard'));
         }
-        return back()->withErrors(['username' => 'Nieprawidłowe dane logowania']);
+
+        return back()
+            ->withErrors(['username' => 'Nieprawidłowe dane logowania'])
+            ->onlyInput('username');
     }
 
-
+    /* =======================
+     * REGISTER
+     * ======================= */
     public function showRegister()
     {
         return view('auth.register');
     }
 
-    public function register(Request $request)
+    public function register(RegisterRequest $request)
     {
-        $data = $request->validate([
-            'username' => 'required|string|unique:users',
-            'password' => 'required|string|min:6',
+        // Pobranie ID domyślnej roli 'client'
+        $clientRole = Role::where('name', 'client')->firstOrFail();
+
+        $user = User::create([
+            'username' => $request->username,
+            'password' => Hash::make($request->password),
+            'role_id' => $clientRole->id,
         ]);
 
-        User::create([
-            'username' => $data['username'],
-            'password' => Hash::make($data['password']),
-            'role' => 'client', // domyślna rola przy rejestracji
-        ]);
+        Auth::login($user);
+        $request->session()->regenerate();
 
-        return redirect()->route('login');
+        return redirect()->route('dashboard');
     }
 
+    /* =======================
+     * LOGOUT
+     * ======================= */
     public function logout(Request $request)
     {
         Auth::logout();
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
         return redirect()->route('login');
     }
 }

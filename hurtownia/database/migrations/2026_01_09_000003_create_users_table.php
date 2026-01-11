@@ -18,6 +18,10 @@ return new class extends Migration
             $table->foreignId('role_id')
                 ->constrained('roles')
                 ->cascadeOnDelete();
+
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
+
             $table->timestamps();
         });
 

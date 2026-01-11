@@ -22,6 +22,12 @@
                                 {{ __('Produkty') }}
                             </x-nav-link>
                         @endif
+
+                        @if(Auth::user()->hasRole('worker'))
+                            <x-nav-link :href="route('orders.index')" :active="request()->routeIs('orders.*')">
+                                {{ __('Zamówienia') }}
+                            </x-nav-link>
+                        @endif
                         
                         @if(Auth::user()->hasRole('admin'))
                             <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
@@ -29,6 +35,12 @@
                             </x-nav-link>
                         @endif
                         
+                        @if(Auth::user()->hasRole('client'))
+                            <x-nav-link :href="route('orders.my')" :active="request()->routeIs('orders.my')">
+                                {{ __('Moje zamówienia') }}
+                            </x-nav-link>
+                        @endif
+
                     </div>
                 @endauth
             </div>
