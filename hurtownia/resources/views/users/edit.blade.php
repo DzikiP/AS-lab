@@ -31,9 +31,14 @@
 
                     <div class="mb-4">
                         <label for="role_id" class="block mb-1">Rola</label>
-                        <select name="role_id" id="role_id" class="w-full border rounded px-3 py-2">
+                        <select name="role_id" class="w-full border rounded px-3 py-2">
                             @foreach($roles as $role)
-                                <option value="{{ $role->id }}" @selected(old('role_id', $user->role_id) == $role->id)>{{ $role->name }}</option>
+                                @if($role->name !== 'admin')
+                                    <option value="{{ $role->id }}"
+                                        @selected(old('role_id', $user->role_id ?? null) == $role->id)>
+                                        {{ $role->name }}
+                                    </option>
+                                @endif
                             @endforeach
                         </select>
                         @error('role_id') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror

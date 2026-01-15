@@ -11,22 +11,32 @@ use Illuminate\Support\Facades\Hash;
 class UserManagementController extends Controller
 {
     // Lista wszystkich użytkowników
-    public function index()
+    public function index(Request $request)
     {
-        // Pobierz użytkowników z relacją role, poza adminami
-        $users = User::with('role')
-            ->whereHas('role', function ($query) {
-                $query->where('name', '!=', 'admin');
-            })
-            ->get();
+        $query = User::with('role')
+            ->whereHas('role', fn($q) => $q->where('name', '!=', 'admin'));
 
-        return view('users.index', compact('users'));
+        // Wyszukiwanie
+        if ($search = $request->get('search')) {
+            $query->where('username', 'like', "%{$search}%");
+        }
+
+        // Sortowanie
+        $allowedSorts = ['id', 'username', 'created_at'];
+        $sort = in_array($request->get('sort'), $allowedSorts) ? $request->get('sort') : 'id';
+        $direction = $request->get('direction') === 'desc' ? 'desc' : 'asc';
+        $query->orderBy($sort, $direction);
+
+        $users = $query->paginate(10)->withQueryString(); // paginacja + zachowanie parametrów
+
+        return view('users.index', compact('users', 'sort', 'direction', 'search'));
     }
 
-    // Formularz tworzenia nowego użytkownika
+
+    // Tworzenie nowego użytkownika
     public function create()
     {
-        $roles = Role::all(); // admin, worker, client
+        $roles = Role::all();
         return view('users.create', compact('roles'));
     }
 
@@ -38,11 +48,18 @@ class UserManagementController extends Controller
 
     public function update(Request $request, User $user)
     {
+        $admin = Role::where('name', 'admin')->value('id');
+
         $request->validate([
-            'username' => 'required|unique:users,username,' . $user->id,
+            'username' => 'required|unique:users,username,' . ($user->id ?? 'NULL'),
             'password' => 'nullable|min:6|confirmed',
-            'role_id' => 'required|exists:roles,id',
+            'role_id' => [
+                'required',
+                'exists:roles,id',
+                'not_in:' . $admin,
+            ],
         ]);
+
 
         $user->username = $request->username;
         $user->role_id = $request->role_id;
@@ -60,18 +77,24 @@ class UserManagementController extends Controller
     // Zapis nowego użytkownika
     public function store(Request $request)
     {
+        $adminRoleId = Role::where('username', 'admin')->value('id');
+
         $request->validate([
-            'username' => 'required|unique:users,username',
-            'password' => 'required|min:6|confirmed',
-            'role_id' => 'required|exists:roles,id',
+            'username' => 'required|unique:users,username,' . ($user->id ?? 'NULL'),
+            'password' => 'nullable|min:6|confirmed',
+            'role_id' => [
+                'required',
+                'exists:roles,id',
+                'not_in:' . $adminRoleId,
+            ],
         ]);
 
         User::create([
             'username' => $request->username,
             'password' => Hash::make($request->password),
             'role_id' => $request->role_id,
-            'created_by' => $request->user()->name,
-            'updated_by' => $request->user()->name,
+            'created_by' => $request->user()->id,
+            'updated_by' => $request->user()->id,
         ]);
 
         return redirect()->route('users.index')->with('success', 'Użytkownik został dodany!');

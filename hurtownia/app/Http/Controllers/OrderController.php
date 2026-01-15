@@ -16,19 +16,69 @@ class OrderController extends Controller
         ]);
     }
 
-    public function myOrders()
+    public function myOrders(Request $request)
     {
-        return view('orders.my', [
-            'orders' => request()->user()->orders()->with('status')->get()
-        ]);
+        $user = $request->user();
+        $query = $user->orders()->with(['status', 'products']);
+
+        // Wyszukiwanie 
+        if ($request->filled('search')) {
+            $query->where('id', $request->search);
+        }
+
+        // Sortowanie
+        if ($request->filled('sort')) {
+            $direction = $request->direction === 'asc' ? 'asc' : 'desc';
+            $query->orderBy($request->sort, $direction);
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+
+        $orders = $query->paginate(10);
+        $statuses = OrderStatus::all();
+
+        return view('orders.my', compact('orders', 'statuses'));
     }
 
-    public function index()
+
+    public function index(Request $request)
     {
-        return view('orders.index', [
-            'orders' => Order::with(['client', 'status'])->get()
-        ]);
+        $query = Order::with(['client', 'status']);
+
+        // wyszukiwanie po ID lub kliencie
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where('id', $search)
+                ->orWhereHas('client', fn($q) => $q->where('username', 'like', "%$search%"));
+        }
+
+        // filtr po statusie
+        if ($request->filled('status')) {
+            $query->where('status_id', $request->status);
+        }
+
+        // sortowanie
+        if ($request->filled('sort')) {
+            $direction = $request->direction === 'asc' ? 'asc' : 'desc';
+            if ($request->sort === 'client') {
+                $query->join('users', 'orders.client_id', '=', 'users.id')
+                    ->orderBy('users.username', $direction)
+                    ->select('orders.*');
+            } else {
+                $query->orderBy($request->sort, $direction);
+            }
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+
+        $orders = $query->paginate(10);
+
+        $statuses = OrderStatus::all();
+
+        return view('orders.index', compact('orders', 'statuses'));
     }
+
+
 
     public function edit(Order $order)
     {
@@ -42,16 +92,13 @@ class OrderController extends Controller
     {
         $user = $request->user();
 
-        // 1. Walidacja
         $request->validate([
             'products' => 'required|array',
             'products.*' => 'integer|min:0'
         ]);
 
-        // 2. Pobranie statusu "new"
         $status = OrderStatus::where('name', 'nowy')->firstOrFail();
 
-        // 3. Utworzenie zamówienia
         $order = Order::create([
             'client_id' => $user->id,
             'status_id' => $status->id,
@@ -59,7 +106,6 @@ class OrderController extends Controller
             'updated_by' => $user->name,
         ]);
 
-        // 4. Dodanie produktów (tylko z ilością > 0)
         foreach ($request->products as $productId => $quantity) {
             if ($quantity > 0) {
                 $order->products()->attach($productId, [
@@ -72,7 +118,6 @@ class OrderController extends Controller
             ->route('orders.my')
             ->with('success', 'Zamówienie zostało złożone');
     }
-
 
     public function updateStatus(Request $request, Order $order)
     {

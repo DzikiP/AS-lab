@@ -24,7 +24,6 @@ class AuthController extends Controller
     {
         $credentials = $request->validated();
 
-        // Authuje po username i password
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
             return redirect()->intended(route('dashboard'));
@@ -45,7 +44,6 @@ class AuthController extends Controller
 
     public function register(RegisterRequest $request)
     {
-        // Pobranie ID domyślnej roli 'client'
         $clientRole = Role::where('name', 'client')->firstOrFail();
 
         $user = User::create([
