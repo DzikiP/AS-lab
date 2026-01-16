@@ -29,6 +29,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware(['auth', 'role:worker'])->group(function () {
         Route::resource('products', ProductController::class);
     });
+
     // Zamówienia - klient
     Route::middleware(['auth', 'role:client'])->group(function () {
         Route::get('/orders/create', [OrderController::class, 'create'])->name('orders.create');

@@ -21,12 +21,10 @@ class OrderController extends Controller
         $user = $request->user();
         $query = $user->orders()->with(['status', 'products']);
 
-        // Wyszukiwanie 
         if ($request->filled('search')) {
             $query->where('id', $request->search);
         }
 
-        // Sortowanie
         if ($request->filled('sort')) {
             $direction = $request->direction === 'asc' ? 'asc' : 'desc';
             $query->orderBy($request->sort, $direction);
@@ -40,24 +38,20 @@ class OrderController extends Controller
         return view('orders.my', compact('orders', 'statuses'));
     }
 
-
     public function index(Request $request)
     {
         $query = Order::with(['client', 'status']);
 
-        // wyszukiwanie po ID lub kliencie
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where('id', $search)
                 ->orWhereHas('client', fn($q) => $q->where('username', 'like', "%$search%"));
         }
 
-        // filtr po statusie
         if ($request->filled('status')) {
             $query->where('status_id', $request->status);
         }
 
-        // sortowanie
         if ($request->filled('sort')) {
             $direction = $request->direction === 'asc' ? 'asc' : 'desc';
             if ($request->sort === 'client') {
@@ -72,13 +66,10 @@ class OrderController extends Controller
         }
 
         $orders = $query->paginate(10);
-
         $statuses = OrderStatus::all();
 
         return view('orders.index', compact('orders', 'statuses'));
     }
-
-
 
     public function edit(Order $order)
     {
@@ -94,29 +85,53 @@ class OrderController extends Controller
 
         $request->validate([
             'products' => 'required|array',
-            'products.*' => 'integer|min:0'
+            'products.*' => 'integer|min:0',
         ]);
 
         $status = OrderStatus::where('name', 'nowy')->firstOrFail();
 
-        $order = Order::create([
-            'client_id' => $user->id,
-            'status_id' => $status->id,
-            'created_by' => $user->name,
-            'updated_by' => $user->name,
-        ]);
+        $productsData = [];
+        $totalPrice = 0;
 
         foreach ($request->products as $productId => $quantity) {
             if ($quantity > 0) {
-                $order->products()->attach($productId, [
-                    'quantity' => $quantity
-                ]);
+                $product = Product::findOrFail($productId);
+
+                $productsData[$productId] = [
+                    'quantity' => $quantity,
+                    'price' => $product->cena,
+                ];
+
+                $totalPrice += $product->cena * $quantity;
             }
         }
 
-        return redirect()
-            ->route('orders.my')
-            ->with('success', 'Zamówienie zostało złożone');
+        if ($request->has('confirm')) {
+            // zapis do bazy
+            $order = Order::create([
+                'client_id' => $user->id,
+                'status_id' => $status->id,
+                'created_by' => $user->username,
+                'updated_by' => $user->username,
+            ]);
+
+            foreach ($productsData as $productId => $data) {
+                $order->products()->attach($productId, $data);
+            }
+
+            return redirect()
+                ->route('orders.my')
+                ->with('success', 'Zamówienie zostało złożone.');
+        } else {
+            // wyświetlenie podsumowania
+            $summaryProducts = Product::whereIn('id', array_keys($productsData))->get();
+
+            return view('orders.confirm', [
+                'products' => $summaryProducts,
+                'quantities' => $productsData,
+                'totalPrice' => $totalPrice,
+            ]);
+        }
     }
 
     public function updateStatus(Request $request, Order $order)

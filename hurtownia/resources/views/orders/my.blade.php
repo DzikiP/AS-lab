@@ -32,6 +32,7 @@
                                 </a>
                             </th>
                             <th class="px-4 py-2 border">Produkty</th>
+                            <th class="px-4 py-2 border">Suma</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -46,6 +47,9 @@
                                             <li>{{ $product->nazwa }} ({{ $product->pivot->quantity }})</li>
                                         @endforeach
                                     </ul>
+                                </td>
+                                <td class="px-4 py-2 border">
+                                    {{ number_format($order->total_price, 2) }} zł
                                 </td>
                             </tr>
                         @endforeach
