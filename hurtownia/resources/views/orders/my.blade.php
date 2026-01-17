@@ -7,50 +7,62 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <form method="GET" action="{{ route('orders.my') }}" class="mb-4 flex gap-2">
-                <input type="text" name="search" value="{{ request('search') }}"
-                       placeholder="Szukaj po ID"
-                       class="border px-3 py-1 rounded flex-1">
-                <button type="submit" class="px-4 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">
-                    Szukaj                    
-                </button>
+
+            <!-- Filtry i wyszukiwanie -->
+            <form method="GET" action="{{ route('orders.my') }}" class="mb-4 flex gap-2 flex-wrap">
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Szukaj po ID" class="border px-3 py-1 rounded flex-1">
+                
+                <select name="status" onchange="this.form.submit()" class="border px-3 py-1 rounded">
+                    <option value="">Wszystkie statusy</option>
+                    @foreach($statuses as $status)
+                        <option value="{{ $status->id }}" @selected(request('status') == $status->id)>{{ $status->name }}</option>
+                    @endforeach
+                </select>
+
+                <button type="submit" class="px-4 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Filtruj</button>
             </form>
 
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-                <table class="min-w-full table-auto border border-gray-300">
+            <div class="bg-white shadow-sm sm:rounded-lg overflow-x-auto p-6">
+                <table class="min-w-full table-fixed border border-gray-300">
                     <thead class="bg-gray-100">
+                        @php
+                            $columns = ['id'=>'ID','status'=>'Status','created_at'=>'Data'];
+                            $currentSort = request('sort','created_at');
+                            $currentDirection = request('direction','desc');
+                        @endphp
                         <tr>
-                            <th class="px-4 py-2 border">
-                                <a href="{{ route('orders.my', array_merge(request()->all(), ['sort' => 'id', 'direction' => request('direction') === 'asc' ? 'desc' : 'asc'])) }}">
-                                    ID
-                                </a>
-                            </th>
-                            <th class="px-4 py-2 border">Status</th>
-                            <th class="px-4 py-2 border">
-                                <a href="{{ route('orders.my', array_merge(request()->all(), ['sort' => 'created_at', 'direction' => request('direction') === 'asc' ? 'desc' : 'asc'])) }}">
-                                    Data
-                                </a>
-                            </th>
-                            <th class="px-4 py-2 border">Produkty</th>
-                            <th class="px-4 py-2 border">Suma</th>
+                            @foreach($columns as $key=>$label)
+                                <th class="px-4 py-2 border w-1/6">
+                                    @if($key==='status')
+                                        {{ $label }}
+                                    @else
+                                        <a href="{{ route('orders.my', array_merge(request()->query(), ['sort'=>$key,'direction'=>($currentSort===$key && $currentDirection==='asc')?'desc':'asc'])) }}">
+                                            {{ $label }}
+                                            @if($currentSort === $key)
+                                                {{ $currentDirection==='asc'?'↑':'↓' }}
+                                            @endif
+                                        </a>
+                                    @endif
+                                </th>
+                            @endforeach
+                            <th class="px-4 py-2 border w-1/4">Produkty</th>
+                            <th class="px-4 py-2 border w-1/6">Suma</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($orders as $order)
                             <tr>
-                                <td class="px-4 py-2 border">{{ $order->id }}</td>
-                                <td class="px-4 py-2 border">{{ $order->status->name }}</td>
-                                <td class="px-4 py-2 border">{{ $order->created_at->format('Y-m-d H:i') }}</td>
+                                <td class="px-4 py-2 border truncate" title="{{ $order->id }}">{{ $order->id }}</td>
+                                <td class="px-4 py-2 border truncate" title="{{ $order->status->name }}">{{ $order->status->name }}</td>
+                                <td class="px-4 py-2 border truncate" title="{{ $order->created_at }}">{{ $order->created_at->format('Y-m-d H:i') }}</td>
                                 <td class="px-4 py-2 border">
-                                    <ul>
+                                    <ul class="list-disc pl-5">
                                         @foreach($order->products as $product)
-                                            <li>{{ $product->nazwa }} ({{ $product->pivot->quantity }})</li>
+                                            <li class="truncate" title="{{ $product->name }}">{{ $product->name }} ({{ $product->pivot->quantity }})</li>
                                         @endforeach
                                     </ul>
                                 </td>
-                                <td class="px-4 py-2 border">
-                                    {{ number_format($order->total_price, 2) }} zł
-                                </td>
+                                <td class="px-4 py-2 border truncate">{{ number_format($order->total_price,2) }} zł</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -61,14 +73,10 @@
                 </div>
 
                 <div class="mt-4">
-                    <a href="{{ route('orders.create') }}" 
-                       class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md 
-                              font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 
-                              focus:ring-offset-2 focus:ring-blue-500">
+                    <a href="{{ route('orders.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
                         Złóż nowe zamówienie
                     </a>
                 </div>
-
             </div>
         </div>
     </div>

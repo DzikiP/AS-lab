@@ -12,9 +12,6 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    /* =======================
-     * LOGIN
-     * ======================= */
     public function showLogin()
     {
         return view('auth.login');
@@ -29,14 +26,10 @@ class AuthController extends Controller
             return redirect()->intended(route('dashboard'));
         }
 
-        return back()
-            ->withErrors(['username' => 'Nieprawidłowe dane logowania'])
+        return back()->withErrors(['username' => 'Nieprawidłowe dane logowania'])
             ->onlyInput('username');
     }
 
-    /* =======================
-     * REGISTER
-     * ======================= */
     public function showRegister()
     {
         return view('auth.register');
@@ -58,13 +51,9 @@ class AuthController extends Controller
         return redirect()->route('dashboard');
     }
 
-    /* =======================
-     * LOGOUT
-     * ======================= */
     public function logout(Request $request)
     {
         Auth::logout();
-
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 

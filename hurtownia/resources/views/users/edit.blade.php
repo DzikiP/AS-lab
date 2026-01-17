@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Edytuj użytkownika') }}
+            Edytuj użytkownika
         </h2>
     </x-slot>
 
@@ -13,29 +13,29 @@
                     @method('PUT')
 
                     <div class="mb-4">
-                        <label for="username" class="block mb-1">Username</label>
-                        <input type="text" name="username" id="username" class="w-full border rounded px-3 py-2" value="{{ old('username', $user->username) }}">
+                        <label class="block text-gray-700 mb-1">Username</label>
+                        <input type="text" name="username" class="w-full border rounded px-3 py-2" value="{{ old('username', $user->username) }}" required>
                         @error('username') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="mb-4">
-                        <label for="password" class="block mb-1">Nowe hasło (opcjonalnie)</label>
-                        <input type="password" name="password" id="password" class="w-full border rounded px-3 py-2">
+                        <label class="block text-gray-700 mb-1">Nowe hasło (opcjonalnie)</label>
+                        <input type="password" name="password" class="w-full border rounded px-3 py-2">
                         @error('password') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="mb-4">
-                        <label for="password_confirmation" class="block mb-1">Powtórz nowe hasło</label>
-                        <input type="password" name="password_confirmation" id="password_confirmation" class="w-full border rounded px-3 py-2">
+                        <label class="block text-gray-700 mb-1">Powtórz nowe hasło</label>
+                        <input type="password" name="password_confirmation" class="w-full border rounded px-3 py-2">
                     </div>
 
                     <div class="mb-4">
-                        <label for="role_id" class="block mb-1">Rola</label>
-                        <select name="role_id" class="w-full border rounded px-3 py-2">
+                        <label class="block text-gray-700 mb-1">Rola</label>
+                        <select name="role_id" class="w-full border rounded px-3 py-2" required>
+                            <option value="">Wybierz rolę</option>
                             @foreach($roles as $role)
                                 @if($role->name !== 'admin')
-                                    <option value="{{ $role->id }}"
-                                        @selected(old('role_id', $user->role_id ?? null) == $role->id)>
+                                    <option value="{{ $role->id }}" @selected(old('role_id', $user->role_id) == $role->id)>
                                         {{ $role->name }}
                                     </option>
                                 @endif

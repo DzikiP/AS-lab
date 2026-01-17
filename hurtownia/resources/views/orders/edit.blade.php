@@ -33,7 +33,7 @@
                 <h3 class="font-bold mb-2">Produkty w zamówieniu</h3>
                 <ul class="list-disc pl-5">
                     @foreach($order->products as $product)
-                        <li>{{ $product->nazwa }} - {{ $product->pivot->quantity }} szt.</li>
+                        <li>{{ $product->name }} - {{ $product->pivot->quantity }} szt.</li>
                     @endforeach
                 </ul>
             </div>

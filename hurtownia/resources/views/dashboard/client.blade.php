@@ -8,14 +8,20 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
 
-            {{-- Panel powitalny --}}
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 text-gray-900">
-                <h2 class="text-xl font-bold">Witaj, {{ auth()->user()->username }}!</h2>
+                <h2 class="text-xl font-bold">Witaj, {{ auth()->user()->username }}</h2>
                 <p class="mt-2 text-gray-700">Sprawdź swoje zamówienia i dostępne produkty.</p>
+
+                <div class="mt-4">
+                    <a href="{{ route('orders.create') }}" 
+                       class="inline-flex items-center px-6 py-3 bg-green-600 text-white rounded-md font-semibold hover:bg-green-700">
+                        Złóż nowe zamówienie
+                    </a>
+                </div>
             </div>
 
             {{-- Statystyki --}}
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div class="bg-white shadow-sm sm:rounded-lg p-6 text-center">
                     <h3 class="text-lg font-semibold">Twoje zamówienia</h3>
                     <p class="mt-2 text-2xl font-bold text-blue-600">{{ $myOrdersCount }}</p>
@@ -31,14 +37,9 @@
                         Sprawdź status
                     </a>
                 </div>
-                    <div class="bg-white shadow-sm sm:rounded-lg p-6 text-center">
-                    <a href="{{ route('orders.create') }}" 
-                    class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700">
-                        Złóż nowe zamówienie
-                    </a>
-                </div>
             </div>
 
+            {{-- Dostępne produkty --}}
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mt-6">
                 <h2 class="text-xl font-bold mb-4">Dostępne produkty</h2>
 
@@ -56,9 +57,9 @@
                         <tbody>
                             @foreach($products as $product)
                                 <tr>
-                                    <td class="px-4 py-2 border">{{ $product->nazwa }}</td>
-                                    <td class="px-4 py-2 border">{{ $product->opis }}</td>
-                                    <td class="px-4 py-2 border">{{ $product->cena }} zł</td>
+                                    <td class="px-4 py-2 border">{{ $product->name }}</td>
+                                    <td class="px-4 py-2 border">{{ $product->description }}</td>
+                                    <td class="px-4 py-2 border">{{ $product->price }} zł</td>
                                 </tr>
                             @endforeach
                         </tbody>

@@ -50,7 +50,7 @@ class Order extends Model
     public function getTotalPriceAttribute(): float
     {
         return $this->products->sum(function ($product) {
-            return $product->cena * $product->pivot->quantity;
+            return $product->price * $product->pivot->quantity;
         });
     }
 }
